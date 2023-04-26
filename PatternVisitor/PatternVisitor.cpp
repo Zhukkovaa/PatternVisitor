@@ -190,22 +190,97 @@ private:
 	std::string const name_; // имя переменной
 };
 
+//Этот код объявляет класс CopySyntaxTree, который является наследником абстрактного класса Transformer. 
+//Класс CopySyntaxTree переопределяет четыре метода, унаследованных от Transformer для копирования выражений разных типов.
+struct CopySyntaxTree : Transformer
+{
+	//transformNumber: метод, который принимает указатель на объект типа Number и создает и возвращает новый объект типа Number, 
+	//со значением числа, равным значению переданного объекта number.
+	Expression* transformNumber(Number const* number)
+	{
+		Expression* exp = new Number(number->value());
+		return exp;
+	}
+	//transformBinaryOperation: метод, который принимает указатель на объект типа BinaryOperation и создает и возвращает новый объект
+	//типа BinaryOperation, используя метод transform для рекурсивной копии подвыражений left и right, которые также являются выражениями.
+	Expression* transformBinaryOperation(BinaryOperation const* binop)
+	{
+		Expression* exp = new BinaryOperation((binop->left())->transform(this),
+			binop->operation(),
+			(binop->right())->transform(this));
+		return exp;
+	}
+	//transformFunctionCall: метод, который принимает указатель на объект типа FunctionCall и создает и возвращает новый объект типа FunctionCall. 
+	//В этом методе происходит копирование имени функции name и аргумента функции arg, используя метод transform для копирования подвыражений.
+	Expression* transformFunctionCall(FunctionCall const* fcall)
+	{
+		Expression* exp = new FunctionCall(fcall->name(),
+			(fcall->arg())->transform(this));
+		return exp;
+	}
+	//transformVariable: метод, который принимает указатель на объект типа Variable и создает и возвращает новый объект типа Variable, 
+	//используя имя переменной name, переданное в объекте var.
+	Expression* transformVariable(Variable const* var)
+	{
+		Expression* exp = new Variable(var->name());
+		return exp;
+	}
+	//класс имеет пустой деструктор, который не делает ничего, поскольку объекты, созданные в методах класса, уничтожаются в другом месте программы
+	~CopySyntaxTree() { };
+};
+
+
 int main()
 {
+	/*
 	//------------------------------------------------------------------------------
-	Expression* e1 = new Number(1.234);
-	Expression* e2 = new Number(-1.234);
-	Expression* e3 = new BinaryOperation(e1, BinaryOperation::DIV, e2);
+	// Создаем указатели на выражения
+	Expression * e1 = new Number(1.234);
+	Expression * e2 = new Number(-1.234);
+	// Создаем объект типа BinaryOperation, используя указатели
+	Expression * e3 = new BinaryOperation(e1, BinaryOperation::DIV, e2);
+	// Вызываем метод evaluate() для вычисления результата и выводим его на экран
 	cout << e3->evaluate() << endl;
 	//------------------------------------------------------------------------------
+	// Создаем указатели на выражения (Создаем указатели на объекты класса Number, со значениями 32.0 и 16.0)
 	Expression* n32 = new Number(32.0);
 	Expression* n16 = new Number(16.0);
+	// Создаем объект типа Двоичная операция и Функциональный вызов, используя указатели
+	//Создаем объект класса BinaryOperation, которому передаем указатели на n32 и n16, и операцию вычитания (MINUS)
 	Expression* minus = new BinaryOperation(n32, BinaryOperation::MINUS, n16);
+	//Создаем объект класса FunctionCall, которому передаем строку "sqrt" (название функции), и указатель на объект, созданный на предыдущем шаге (minus)
 	Expression* callSqrt = new FunctionCall("sqrt", minus);
+	//Создаем указатель на объект класса Number со значением 2.0
 	Expression* n2 = new Number(2.0);
+	//Создаем объект класса BinaryOperation, которому передаем указатель на объект, созданный на шаге 3 (callSqrt), указатель на объект, созданный на шаге 4 (n2), и операцию умножения (MUL)
 	Expression* mult = new BinaryOperation(n2, BinaryOperation::MUL, callSqrt);
+	//Создаем объект класса FunctionCall, которому передаем строку "abs" (название функции), и указатель на объект, созданный на предыдущем шаге (mult)
 	Expression* callAbs = new FunctionCall("abs", mult);
+	//Вызываем метод evaluate() у объекта callAbs, который производит вычисление выражения. Результат выводим на экран
 	cout << callAbs->evaluate() << endl;
-	//
+	//------------------------------------------------------------------------------
+	*/
+
+	//Создаем объект класса Number с значением 32.0 и присваиваем указатель на него переменной n32
+	Number* n32 = new Number(32.0);
+	//Создаем объект класса Number с значением 16.0 и присваиваем указатель на него переменной n16
+	Number* n16 = new Number(16.0);
+	//Создаем объект класса BinaryOperation с указателями на n32 и n16 и операцией вычитания и присваиваем указатель на него переменной minus
+	BinaryOperation* minus = new BinaryOperation(n32, BinaryOperation::MINUS, n16);
+	//Создаем объект класса FunctionCall с именем функции "sqrt" и указателем на объект BinaryOperation и присваиваем указатель на него переменной callSqrt
+	FunctionCall* callSqrt = new FunctionCall("sqrt", minus);
+	//Создаем объект класса Variable с именем "var" и присваиваем указатель на него переменной var
+	Variable* var = new Variable("var");
+	//Создаем объект класса BinaryOperation с указателями на объект Variable и объект FunctionCall с указателем на объект
+	//BinaryOperation и операцией умножения и присваиваем указатель на него переменной mult
+	BinaryOperation* mult = new BinaryOperation(var, BinaryOperation::MUL, callSqrt);
+	//Создаем объект класса FunctionCall с именем функции "abs" и указателем на объект BinaryOperation и присваиваем указатель на него переменной callAbs
+	FunctionCall* callAbs = new FunctionCall("abs", mult);
+	//Создаем объект класса CopySyntaxTree и присваиваем указатель на него переменной CST
+	CopySyntaxTree CST;
+	//Применяем метод transform объекта callAbs, передавая в качестве аргумента указатель на объект CST и присваиваем указатель на полученный объект Expression переменной newExpr
+	Expression* newExpr = callAbs->transform(&CST);
+	std::cout << newExpr->print() << std::endl;
+	//Выводим на экран строковое представление объекта newExpr
 }
 

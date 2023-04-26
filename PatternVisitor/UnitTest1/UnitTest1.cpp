@@ -121,5 +121,38 @@ namespace UnitTest1
 			Variable* var = new Variable("var");
 			Assert::IsTrue(var->evaluate() == 0.0);
 		}
+
+		TEST_METHOD(CopyNumber)
+		{
+			CopySyntaxTree tree_copy;
+			Number num(42.0);
+			Expression* exp = num.transform(&tree_copy);
+			Number* result = dynamic_cast<Number*>(exp);
+			Assert::IsNotNull(result);
+			Assert::AreEqual(42.0, result->value());
+			delete exp;
+		}
+		TEST_METHOD(CopyVariable)
+		{
+			CopySyntaxTree tree_copy;
+			Variable var("x");
+			Expression* exp = var.transform(&tree_copy);
+			Variable* result = dynamic_cast<Variable*>(exp);
+			Assert::IsNotNull(result);
+			Assert::AreEqual(std::string("x"), result->name());
+			delete exp;
+		}
+		TEST_METHOD(TestCST) {
+			Number* n32 = new Number(32.0);
+			Number* n16 = new Number(16.0);
+			BinaryOperation* minus = new BinaryOperation(n32, BinaryOperation::MINUS, n16);
+			FunctionCall* callSqrt = new FunctionCall("sqrt", minus);
+			Variable* var = new Variable("var");
+			BinaryOperation* mult = new BinaryOperation(var, BinaryOperation::MUL, callSqrt);
+			FunctionCall* callAbs = new FunctionCall("abs", mult);
+			CopySyntaxTree CST;
+			Expression* newExpr = callAbs->transform(&CST);
+			Assert::IsTrue(newExpr->print() == callAbs->print());
+		}
 	};
 }
