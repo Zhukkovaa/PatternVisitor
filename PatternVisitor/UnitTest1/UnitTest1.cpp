@@ -154,5 +154,36 @@ namespace UnitTest1
 			Expression* newExpr = callAbs->transform(&CST);
 			Assert::IsTrue(newExpr->print() == callAbs->print());
 		}
+		
+		TEST_METHOD(TestTransformNumber)
+		{
+			FoldConstants fc;
+			Number num(10.0);
+			Expression* result = fc.transformNumber(&num);
+			Assert::IsTrue(dynamic_cast<Number*>(result) != nullptr);
+			Assert::AreEqual(10.0, dynamic_cast<Number*>(result)->value());
+		}
+		TEST_METHOD(TestTransformFunctionCall)
+		{
+			FoldConstants transformer;
+			Expression* argumentExpression = new Number(9.0);
+			Expression* expression = new FunctionCall("sqrt", argumentExpression);
+			Expression* transformedExpression = transformer.transformFunctionCall(dynamic_cast<FunctionCall*>(expression));
+			Assert::IsNotNull(transformedExpression);
+			Assert::AreEqual(3.0, dynamic_cast<Number*>(transformedExpression)->value());
+		}
+		TEST_METHOD(TestTransformBinaryOperation)
+		{
+			FoldConstants transformer;
+			Expression* leftExpression = new Number(2.0);
+			Expression* rightExpression = new Number(3.0);
+			Expression* expression = new BinaryOperation(leftExpression, '+', rightExpression);
+			Expression* transformedExpression = transformer.transformBinaryOperation(dynamic_cast<BinaryOperation*>(expression));
+
+			Assert::IsNotNull(transformedExpression);
+			Assert::AreEqual(5.0, dynamic_cast<Number*>(transformedExpression)->value());
+
+		}
+
 	};
 }

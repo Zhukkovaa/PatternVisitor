@@ -229,6 +229,82 @@ struct CopySyntaxTree : Transformer
 	~CopySyntaxTree() { };
 };
 
+//Структура FoldConstants является наследником абстрактного класса Transformer и реализует методы для оптимизации выражений, связанных 
+//с арифметическими операциями и вызовами функций.
+struct FoldConstants : Transformer
+{
+	Expression* transformNumber(Number const* number)//Метод transformNumber создает новый объект Number и возвращает его.
+	{
+		Expression* exp = new Number(number->value());
+		return exp;//числа не сворачиваются, поэтому просто возвращаем копию
+	}
+
+	//Метод transformBinaryOperation создает новые объекты типа BinaryOperation с новыми указателями на выражения слева и справа. 
+	//Если оба операнда являются объектами типа Number, то производится вычисление значения выражения и возвращается новый объект Number, 
+	//иначе метод возвращает созданный объект BinaryOperation.
+	Expression* transformBinaryOperation(BinaryOperation const* binop)
+	{
+		// Создаем указатели на левое и правое выражение
+		Expression* nleft = (binop->left())->transform(this);//рекурсивно уходим в левый операнд, чтобы свернуть
+		Expression* nright = (binop->right())->transform(this);//рекурсивно уходим в правый операнд, что свернуть
+		int noperation = binop->operation();
+
+		// Создаем новый объект типа BinaryOperation с новыми указателями
+		BinaryOperation* nbinop = new BinaryOperation(nleft, noperation, nright);
+		// Проверяем на приводимость указателей к типу Number
+		Number* nleft_is_number = dynamic_cast<Number*>(nleft);
+		Number* nright_is_number = dynamic_cast<Number*>(nright);
+		if (nleft_is_number && nright_is_number) {
+			// Вычисляем значение выражения
+			Expression* result = new Number(binop->evaluate());
+
+			// Освобождаем память
+			delete nbinop;
+			// Возвращаем результат
+			return result;
+		}
+		else {
+			return nbinop;
+		}
+	}
+
+	//Метод transformFunctionCall создает новый объект типа FunctionCall с новым указателем на аргумент. 
+	//Если аргумент является объектом типа Number, то производится вычисление значения вызова функции и возвращается новый объект Number, 
+	//иначе метод возвращает созданный объект FunctionCall.
+
+	Expression* transformFunctionCall(FunctionCall const* fcall)
+	{
+		// Создаем указатель на аргумент
+		Expression* narg = (fcall->arg())->transform(this);//рекурсивно сворачиваем аргумент
+		std::string const& nname = fcall->name();
+
+		// Создаем новый объект типа FunctionCall с новым указателем
+		FunctionCall* nfcall = new FunctionCall(nname, narg);
+
+		// Проверяем на приводимость указателя к типу Number
+		Number* narg_is_number = dynamic_cast<Number*>(narg);
+		if (narg_is_number) {//если аргумент это число
+			// Вычисляем значение выражения
+			Expression* result = new Number(fcall->evaluate());
+
+			// Освобождаем память
+			delete nfcall;
+			// Возвращаем результат
+			return result;
+		}
+		else {
+			return nfcall;
+		}
+	}
+	//Метод transformVariable создает новый объект Variable и возвращает его.
+	Expression* transformVariable(Variable const* var)
+	{
+		Expression* exp = new Variable(var->name());
+		return exp;//переменные не сворачиваем, поэтому просто возвращаем копию
+	}
+	~FoldConstants() { };//Деструктор
+};
+
 
 int main()
 {
@@ -282,5 +358,9 @@ int main()
 	Expression* newExpr = callAbs->transform(&CST);
 	std::cout << newExpr->print() << std::endl;
 	//Выводим на экран строковое представление объекта newExpr
+	FoldConstants FC;
+	Expression* newExpr2 = callAbs->transform(&FC);
+	//FoldConstants FC;
+	std::cout << newExpr2->print() << std::endl;
 }
 

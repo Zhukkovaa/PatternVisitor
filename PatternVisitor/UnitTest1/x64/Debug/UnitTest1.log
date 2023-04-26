@@ -1,5 +1,4 @@
 ﻿  UnitTest1.cpp
 D:\PatternVisitor\PatternVisitor\PatternVisitor.cpp(115): warning C4715: BinaryOperation::evaluate: значение возвращается не при всех путях выполнения
-  LINK : не найден или не выполнена сборка D:\PatternVisitor\PatternVisitor\x64\Debug\UnitTest1.dll при последней инкрементной компоновке; выполняется полная компоновка
      Создается библиотека D:\PatternVisitor\PatternVisitor\x64\Debug\UnitTest1.lib и объект D:\PatternVisitor\PatternVisitor\x64\Debug\UnitTest1.exp
   UnitTest1.vcxproj -> D:\PatternVisitor\PatternVisitor\x64\Debug\UnitTest1.dll
